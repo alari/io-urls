@@ -1,0 +1,228 @@
+Index: plugins/shorteners/urls_io/urls_io.h
+===================================================================
+--- plugins/shorteners/urls_io/urls_io.h	(revision 0)
++++ plugins/shorteners/urls_io/urls_io.h	(revision 0)
+@@ -0,0 +1,42 @@
++/*
++This file is part of Choqok, the KDE micro-blogging client
++
++Copyright (C) 2008-2010 Mehrdad Momeny <mehrdad.momeny@gmail.com>
++
++This program is free software; you can redistribute it and/or
++modify it under the terms of the GNU General Public License as
++published by the Free Software Foundation; either version 2 of
++the License or (at your option) version 3 or any later version
++accepted by the membership of KDE e.V. (or its successor approved
++by the membership of KDE e.V.), which shall act as a proxy
++defined in Section 14 of version 3 of the license.
++
++
++This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, see http://www.gnu.org/licenses/
++*/
++#ifndef URLS1_IO_H
++#define URLS1_IO_H
++
++#include <shortener.h>
++#include <QString>
++#include <QVariantList>
++/**
++@author Boris Tsirkin \<bgdotmail+choqok@gmail.com\>
++*/
++class Ur1s_io : public Choqok::Shortener
++{
++    Q_OBJECT
++public:
++    Ur1s_io( QObject* parent, const QVariantList& args  );
++    ~Ur1s_io();
++public:
++    QString shorten( const QString &url );
++};
++
++#endif
+Index: plugins/shorteners/urls_io/urls_io.cpp
+===================================================================
+--- plugins/shorteners/urls_io/urls_io.cpp	(revision 0)
++++ plugins/shorteners/urls_io/urls_io.cpp	(revision 0)
+@@ -0,0 +1,88 @@
++/*
++    This file is part of Choqok, the KDE micro-blogging client
++
++    Copyright (C) 2008-2010 Mehrdad Momeny <mehrdad.momeny@gmail.com>
++	
++    This program is free software; you can redistribute it and/or
++    modify it under the terms of the GNU General Public License as
++    published by the Free Software Foundation; either version 2 of
++    the License or (at your option) version 3 or any later version
++    accepted by the membership of KDE e.V. (or its successor approved
++    by the membership of KDE e.V.), which shall act as a proxy
++    defined in Section 14 of version 3 of the license.
++
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program; if not, see http://www.gnu.org/licenses/
++*/
++/**
++ * @ author Boris Tsirkin <bgdotmail+choqok@gmail.com>
++ */
++
++#include "urls_io.h"
++#include <QString>
++#include <KIO/Job>
++#include <KDebug>
++#include <kio/netaccess.h>
++#include <KAboutData>
++#include <KGenericFactory>
++#include <kglobal.h>
++
++K_PLUGIN_FACTORY( MyPluginFactory, registerPlugin < Urls_io > (); )
++K_EXPORT_PLUGIN( MyPluginFactory( "choqok_urls_io" ) )
++
++Urls_io::Urls_io( QObject* parent, const QVariantList& )
++    : Choqok::Shortener( MyPluginFactory::componentData(), parent )
++{
++}
++
++Urls_io::~Urls_io()
++{
++}
++
++QString Urls_io::shorten( const QString& url )
++{
++    kDebug() << "Using urls.io";
++    QByteArray data;
++    KUrl reqUrl( "http://urls.io/api/get-short/" );
++    reqUrl.addQueryItem( "full_url", KUrl( url ).url() );
++    reqUrl.addQueryItem( "api_key", "50a311b108bab2e5e44dfac43d7185e1" );
++	reqUrl.addQueryItem( "env", 5 );
++
++    KIO::Job* job = KIO::get( reqUrl, KIO::Reload, KIO::HideProgressInfo );
++
++    if( KIO::NetAccess::synchronousRun( job, 0, &data ) ) {
++		QString output(data);
++		QRegExp rx ( QString( "\"status\":\"(.+)\"" ) );
++		rx.setMinimal(true);
++		rx.indexIn(output);
++		output = rx.cap(1);
++		kDebug() << "Status: " <<output;
++		if( "SUCCEED" == output ) {
++            rx.setPattern( QString( "\"short_url\":\"(.+)\"" ) );
++            rx.indexIn(output);
++            output = rx.cap(1);
++            kDebug() << "Short url is: " << output;
++            if( !output.isEmpty() ) {
++               return output;
++            }
++		}
++        else {
++			rx.setPattern( QString( "\"error_msg\":\"(.+)\"" ) );
++			rx.indexIn(output);
++			output = rx.cap(1);
++			kDebug() << "Error: " << output;
++		}
++    }
++    else {
++        kDebug() << "Cannot create a shorten url.\t" << "KJob ERROR";
++    }
++    return url;
++}
++
++// #include "Urls_io.moc"
+Index: plugins/shorteners/urls_io/choqok_ur1s_io.desktop
+===================================================================
+--- plugins/shorteners/urls_io/choqok_ur1s_io.desktop	(revision 0)
++++ plugins/shorteners/urls_io/choqok_ur1s_io.desktop	(revision 0)
+@@ -0,0 +1,53 @@
++[Desktop Entry]
++Encoding=UTF-8
++Type=Service
++X-Choqok-Version=1
++Icon=choqok
++ServiceTypes=Choqok/Plugin
++X-KDE-Library=choqok_ur1s_io
++X-KDE-PluginInfo-Author=Boris Tsirkin
++X-KDE-PluginInfo-Email=bgdotmail+choqok@gmail.com
++X-KDE-PluginInfo-Name=choqok_ur1s_io
++X-KDE-PluginInfo-Version=0.1
++X-KDE-PluginInfo-Website=http://choqok.gnufolks.org
++X-KDE-PluginInfo-Category=Shorteners
++X-KDE-PluginInfo-Depends=
++X-KDE-PluginInfo-License=GPL
++X-KDE-PluginInfo-EnabledByDefault=false
++Name=ur1s.io Shortener
++Name[da]=ur1s.io-afkorter
++Name[de]=ur1s.io
++Name[en_GB]=ur1s.io Shortener
++Name[es]=Acortador de ur1s.io
++Name[et]=ur1s.io lühendaja
++Name[fr]=Raccourcisseur pour ur1s.io
++Name[it]=Abbreviatore ur1s.io
++Name[nb]=ur1s.io innkorting
++Name[nds]=Afkörter för "ur1s.io"
++Name[nl]=urls.io-inkortprogramma
++Name[pt]=Redutor do ur1s.io
++Name[pt_BR]=Encolhedor ur1s.io
++Name[ro]=Scurtător ur1s.io
++Name[ru]=Укорачиватель urls.io
++Name[sv]=urls.io avkortningsverktyg
++Name[uk]=Скорочувач ur1s.io
++Name[x-test]=xxur1s.io Shortenerxx
++Name[zh_CN]=ur1s.io 缩短器
++Comment=A plugin to shorten URLs via the ur1s.io service.
++Comment[da]=Et plugin til at afkorte URL'er via tjenesten ur1s.io.
++Comment[de]=Ein Modul, um Adressen (URLs) mit Hilfe des ur1s.io-Dienstes zu kürzen
++Comment[en_GB]=A plugin to shorten URLs via the ur1s.io service.
++Comment[es]=Un complemento para acortar los URL por medio del servicio de ur1s.io
++Comment[et]=Plugin URL-ide lühendamiseks ur1s.io teenuse abil.
++Comment[fr]=Un module externe pour raccourcir les URL via le service ur1s.io.
++Comment[it]=Un'estensione per abbreviare gli URL con il servizio ur1s.io
++Comment[nb]=Et programtillegg som korter inn URL-er via ur1s.io-tjenesten.
++Comment[nds]=En Moduul för't Afkörten vun "ur1s.io"-Adressen
++Comment[nl]=Een plugin voor het inkorten van URL's via de urls.io-service.
++Comment[pt]=Um 'plugin' para reduzir os URL's, usando o serviço do ur1s.io.
++Comment[pt_BR]=Um plug-in para encolher URLs através do serviço ur1s.io.
++Comment[sv]=Ett insticksprogram för att avkorta webbadresser via tjänsten urls.io.
++Comment[ru]=Плагин для укорачивания адреса с помощью сайта urls.io
++Comment[uk]=Додаток для скорочення адрес за допомогою служб ur1s.io.
++Comment[x-test]=xxA plugin to shorten URLs via the ur1s.io service.xx
++Comment[zh_CN]=通过 ur1s.io 服务缩短 URL 的插件。
+Index: plugins/shorteners/urls_io/CMakeLists.txt
+===================================================================
+--- plugins/shorteners/urls_io/CMakeLists.txt	(revision 0)
++++ plugins/shorteners/urls_io/CMakeLists.txt	(revision 0)
+@@ -0,0 +1,14 @@
++include_directories(
++${CHOQOK_INCLUDES}
++)
++
++set( choqok_ur1s_io_SRCS
++ur1s_io.cpp )
++
++kde4_add_plugin(choqok_ur1s_io ${choqok_ur1s_io_SRCS})
++
++target_link_libraries(choqok_ur1s_io ${KDE4_KIO_LIBS} choqok)
++
++install(TARGETS choqok_ur1s_io DESTINATION ${PLUGIN_INSTALL_DIR})
++
++install( FILES choqok_ur1s_io.desktop  DESTINATION ${SERVICES_INSTALL_DIR})
+\ No newline at end of file
+Index: plugins/shorteners/CMakeLists.txt
+===================================================================
+--- plugins/shorteners/CMakeLists.txt	(revision 1103570)
++++ plugins/shorteners/CMakeLists.txt	(working copy)
+@@ -3,4 +3,5 @@
+ add_subdirectory(digg)
+ add_subdirectory(is_gd)
+ add_subdirectory(ur1_ca)
++add_subdirectory(urls_io)
+ add_subdirectory(yourls)
