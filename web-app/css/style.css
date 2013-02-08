@@ -1,0 +1,15 @@
+@CHARSET "UTF-8";
+html,body{padding:0;margin:0;font-family:Verdana}
+a:hover{text-decoration:none}
+#c{margin:auto;width:550px;text-align:left;padding:10px;}
+#c a{color:darkred;}
+#c li{padding: 3px;}
+h1,h2,h3{color:navy}
+h1,h2,h3,fieldset{text-align:center}
+fieldset{border-color:darkred}
+legend{border:1px solid darkred;background:#ffefef}
+.openid-blur{color:gray;font-style:italic}
+#oid{text-align:right;background:#a6ceff;color:white;padding:5px}
+#oid a{color:wheat}
+#bottom{color:white;background:#a6ceff;padding:5px;text-align:center;}
+#bottom a{color:wheat;}
