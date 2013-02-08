@@ -13,29 +13,22 @@ hibernate {
 environments {
     development {
         dataSource {
-            driverClassName = "org.postgresql.Driver"
-            url = "jdbc:postgresql://localhost:5432/urls"
-            username = "urls"
-            password = "urls"
-            dbCreate = "update"
-        }
-        dataSource_old {
-            driverClassName = "com.mysql.jdbc.Driver"
-            url = "jdbc:mysql://localhost/urls_old?useUnicode=yes&characterEncoding=UTF-8"
-            username = "root"
-            password = "12345"
+            url = "jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
         }
     }
     test {
         dataSource {
-            //dbCreate = "update"
+            dbCreate = "create-drop"
             url = "jdbc:h2:mem:testDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
         }
     }
     production {
         dataSource {
-            //dbCreate = "update"
-            url = "jdbc:h2:prodDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
+            driverClassName = "org.postgresql.Driver"
+            url = "jdbc:postgresql://localhost:5432/urls_io"
+            username = "urls_io"
+            password = "urls_io"
+            dbCreate = "update"
             pooled = true
             properties {
                maxActive = -1
