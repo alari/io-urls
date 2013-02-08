@@ -25,9 +25,9 @@ environments {
     production {
         dataSource {
             driverClassName = "org.postgresql.Driver"
-            url = "jdbc:postgresql://localhost:5432/urls_io"
-            username = "urls_io"
-            password = "urls_io"
+            url = "jdbc:postgresql://localhost:5432/urls"
+            username = "urls"
+            password = "urls"
             dbCreate = "update"
             pooled = true
             properties {
